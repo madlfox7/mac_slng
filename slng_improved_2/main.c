@@ -1,113 +1,5 @@
 #include "so_long.h"
 
-
-char	*ft_strdup_itoa(const char *str)
-{
-	
-	char	*dup;
-	int		i;
-
-	i = 0;
-	
-	dup = (char *)malloc(sizeof(char) *  ft_strlen_v(str) + 1);
-	if (dup == NULL)
-		return (NULL);
-	while (str[i])
-	{
-		dup[i] = str[i];
-		i++;
-	}
-	dup[i] = '\0';
-	return (dup);
-}
-
-int	count_digits(int n)
-{
-	int	len;
-
-	len = 0;
-	if (n == 0)
-		return (1);
-	if (n == -2147483648)
-		return (11);
-	if (n < 0)
-	{
-		len = 1;
-		n = -n;
-	}
-	while (n > 0)
-	{
-		n /= 10;
-		len++;
-	}
-	return (len);
-}
-
-char	*handle_zero(int n)
-{
-	char	*str;
-
-	str = (char *)malloc(2 * sizeof(char));
-	str[0] = n + '0';
-	str[1] = '\0';
-	return (str);
-}
-
-char	*ft_itoa(int n)
-{
-	char	*str;
-	long	len;
-
-	if (n == 0)
-		return (handle_zero(0));
-	if (n == -2147483648)
-		return (ft_strdup_itoa("-2147483648"));
-	len = count_digits(n);
-	str = malloc((len + 1) * sizeof(char));
-	if (!str)
-		return (NULL);
-	str[len] = '\0';
-	if (n < 0)
-	{
-		str[0] = '-';
-		n = -n;
-	}
-	while (n > 0)
-	{
-		str[--len] = (n % 10) + '0';
-		n /= 10;
-	}
-	return (str);
-}
-
-void print_2d_matrix(char **matrix, int height, int width) {
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            printf("%c ", matrix[i][j]);
-        }
-        printf("\n");
-    }
-}
-
-void print_matrix(const t_data *data) //delete later
-{
-    if (data == NULL || data->map_copy == NULL)
-    {
-        printf("Matrix is not initialized.\n");
-        return;
-    }
-
-    for (int i = 0; i < data->height; i++)
-    {
-        for (int j = 0; j < data->width; j++)
-        {
-            printf("%c", data->map_copy[i][j]);
-        }
-        printf("\n");
-    }
-}
-
-
 void free_map(t_data *data)
 {
     if (data->map_copy == NULL)
@@ -117,7 +9,9 @@ void free_map(t_data *data)
         free(data->map_copy[i]);
     }
     free(data->map_copy);
+
     data->map_copy = NULL; // to avoid 2* freeing
+
     //copy map free
      if (data->mapp == NULL)
         return;
@@ -128,7 +22,7 @@ void free_map(t_data *data)
     free(data->mapp);
     data->mapp = NULL; // to avoid 2* freeing
 
-}
+} //change fors to while
 
 void free_data(t_data *data)
 {
@@ -138,7 +32,30 @@ void free_data(t_data *data)
 
 
 
+////////////////////////////////////////////////////////////////
+void get_map2(int fd, char *res, char *str, t_data *data)
+{
+       close(fd);
+    res = ft_strtrim(str, "\n");
+    nl_in_between(res);
+    trim(data, res, &(data->height), &(data->width));
+    free(str);
+    free(res);
+}
 
+void file_error_msg(int fd, char *line, int flag)
+{
+    if (fd == -1 && flag == 1)
+    {
+        printf("Error\nNo such file or directory\n");
+        exit(1);
+    }
+   else if (!line && flag == 2)
+    {
+        printf("Error\nEmpty file");
+        exit(1);
+    }
+}
 void get_map1(char *filename, t_data *data)
 {
     char *str = NULL;
@@ -146,21 +63,12 @@ void get_map1(char *filename, t_data *data)
     char *line;
     char *res;
     
+    res = NULL;
+    line = NULL;
     fd = open(filename, O_RDONLY);
-    if (fd == -1)
-    {
-      //  perror("Error opening file\n");
-        printf("Error\nNo such file or directory\n");
-        exit(1);
-    }
-
+    file_error_msg(fd, line, 1);
     line = get_next_line(fd);
-    if (!line)
-    {
-        printf("Error\nEmpty file");
-        exit(1);
-    }
-
+     file_error_msg(fd, line, 2);
     str = ft_calloc(1, 1);
     while (line)
     {
@@ -168,23 +76,8 @@ void get_map1(char *filename, t_data *data)
         free(line);
         line = get_next_line(fd);
     }
-    close(fd);
-
-   // printf("Raw map data:\n");
-    //printf("%s\n", str);
-   // printf("=============\n");
-
-    res = ft_strtrim(str, "\n");
-    nl_in_between(res);
-
-    // Print the processed map data
-   // print_processed_map(res);
-
-    trim(data, res, &(data->height), &(data->width));
-    free(str);
-    free(res);
+    get_map2(fd, res, str, data);
 }
-
 
 int valid_char(char c)
 {
@@ -195,7 +88,6 @@ int valid_char(char c)
 
 int valid(t_data *data)
 {
-
     for (int i = 0; i < data->height; i++)
     {
         for (int j = 0; j < data->width; j++)
@@ -207,8 +99,8 @@ int valid(t_data *data)
         }
     }
     return 1;
-}
-
+} //change fors to while
+////////////////////////////////////////////////////////////////
 
 
 int object_counter(t_data *data, int *player_count, int *exit_count, int *collectable)
@@ -220,17 +112,11 @@ int object_counter(t_data *data, int *player_count, int *exit_count, int *collec
         for (int j = 0; j < data->width; j++)
         {
             if (data->map_copy[i][j] == 'P')
-            {
                 (*player_count)++;
-            }
             if (data->map_copy[i][j] == 'E')
-            {
                 (*exit_count)++;
-            }
             if (data->map_copy[i][j] == 'C')
-            {
                 (*collectable)++;
-            }
             if (data->map_copy[i][j] == '0')
                 empty_space++;
         }
@@ -240,9 +126,10 @@ int object_counter(t_data *data, int *player_count, int *exit_count, int *collec
        if (!empty_space)
             printf("Error : no space to move\n");
        return 1;
-   }
+   } //into another function
+
    return 0;
-}
+} //change fors to while 
 
 
 void borders(t_data *data)
@@ -265,11 +152,8 @@ void borders(t_data *data)
                     exit(1);
                 }
           }
-          
     }
-}
-
-///////////////////////////
+} //change fors
 
 
 int flood_fill(t_data *data, int x, int y, int *exit_is_accessable)
@@ -277,24 +161,16 @@ int flood_fill(t_data *data, int x, int y, int *exit_is_accessable)
     static int count_of_collect_reached;
     
     if (data->map_copy[y][x] == 'C')
-    {
         count_of_collect_reached++;
-    }
       if (data->map_copy[y][x] == 'E')
-    {
         *exit_is_accessable = 1;
-       // printf("collect found in %d %d\n", y, x);
-    }
-   // printf("count C %d\n", count_of_collect_reached);
     if (x < 0 || y < 0 || x >= data->width || y >= data->height)
         return count_of_collect_reached;
     if (data->map_copy[y][x] != '0' && data->map_copy[y][x] != 'P' && data->map_copy[y][x] != 'C')
         return count_of_collect_reached;
     if (data->map_copy[y][x] == 'V')
         return count_of_collect_reached;
-  
     data->map_copy[y][x] = 'V';
-  //  printf("\n\n__count = %d\n", *collect_count);
     flood_fill(data, x + 1, y, exit_is_accessable); 
     flood_fill(data, x - 1, y, exit_is_accessable); 
     flood_fill(data, x, y + 1, exit_is_accessable); 
@@ -304,9 +180,6 @@ int flood_fill(t_data *data, int x, int y, int *exit_is_accessable)
 
 void get_collect_count(t_data *data, int *collect_count)
 {
-    //int x = 0;
-   // int y = 0;
-    
      for (int y = 0; y < data->height; y++)
     {
         for (int x = 0; x < data->width; x++)
@@ -321,8 +194,9 @@ void get_collect_count(t_data *data, int *collect_count)
     {
         printf("No collectables found\n");
         exit(1);
-    }
-}
+    } 
+} //change fors
+
 
 
 int is_map_valid(t_data *data)
@@ -369,7 +243,6 @@ int is_map_valid(t_data *data)
         printf("Error: Player (P) not found!\n");
         return 0;
     }
-
     if (!exit_found)
     {
         printf("Error: Exit (E) not found!\n");
@@ -380,22 +253,9 @@ int is_map_valid(t_data *data)
         printf("Invalid map, collectables are not accessible or exit is blocked\n");
         exit(1);
     }
-  
-    for (int y = 0; y < data->height; y++)
-    {
-        for (int x = 0; x < data->width; x++)
-        {
-            if (data->map_copy[y][x] == 'V')
-            {
-                data->map_copy[y][x] = '0';
-            }
-        }
-    }
-    //printf("The map is valid and playable!\n");
     return 1;
 }
 
-//////////////////////////////////////////
 void  map_validation(t_data *data)
 {
     if (!valid(data))
@@ -410,10 +270,13 @@ void  map_validation(t_data *data)
     }
     borders(data);
    if (!is_map_valid(data))
-   {
        exit(1);
-   }
 }
+
+
+
+
+/////////////////////////////////////////////////////////
 void	load_image(t_data *data)
 {
 
@@ -431,7 +294,7 @@ void	load_image(t_data *data)
     {
         printf("Error: Failed to load images.\n");
         exit(1);
-    }
+    }//image checkers into another function 
      data->player = mlx_xpm_file_to_image(data->mlx, "assets/pl.xpm", &size_h, &size_w);
     data->wall = mlx_xpm_file_to_image(data->mlx, "assets/wall_1.xpm", &size_h, &size_w);
     data->free_space = mlx_xpm_file_to_image(data->mlx, "assets/floor.xpm", &size_h, &size_w);
@@ -442,9 +305,10 @@ void	load_image(t_data *data)
     {
         printf("Error: Failed to load images.\n");
         exit(1);
-    }
+    } //image checkers into another function 
     data->moves = 0;
 }
+
 void ft_image(t_data *data)
 {
     int i;
@@ -465,39 +329,26 @@ void ft_image(t_data *data)
             }
             else if (data->mapp[i][j] == 'P')
             {
-		int frame_index = 0;
-		if (data->current_direction == BACK)
-		{
-		frame_index = 1;
-		}
-	 	else if (data->current_direction == LEFT)
-		{
-		frame_index = 2;
-		}	
-		else if (data->current_direction == RIGHT)
-		{
-			frame_index = 3;
-		}
-	  mlx_put_image_to_window(data->mlx, data->win, data->player_frames[frame_index][data->animation_frame - 1], j * 64, i * 64);
-            }
-             else if (data->mapp[i][j] == '0')
-            {
-                mlx_put_image_to_window(data->mlx, data->win, data->free_space, j * 64, i * 64);
-            }
-              else if (data->mapp[i][j] == 'C')
-            {
-                mlx_put_image_to_window(data->mlx, data->win, data->collectable, j * 64, i * 64);
-            }
-          else if (data->mapp[i][j] == 'E')
-            {
-                mlx_put_image_to_window(data->mlx, data->win, data->exit, j * 64, i * 64);
-            }
-              else if (data->mapp[i][j] == 'T')
-            {
-                mlx_put_image_to_window(data->mlx, data->win, data->enemy, j * 64, i * 64);
-            }
-            j++;
-        }
+		            int frame_index = 0;
+		            if (data->current_direction == BACK)
+		                frame_index = 1;
+	 	            else if (data->current_direction == LEFT)
+		                frame_index = 2;
+		            else if (data->current_direction == RIGHT)
+			            frame_index = 3;
+///in other function????
+	                mlx_put_image_to_window(data->mlx, data->win, data->player_frames[frame_index][data->animation_frame - 1], j * 64, i * 64);
+                }
+                else if (data->mapp[i][j] == '0')
+                        mlx_put_image_to_window(data->mlx, data->win, data->free_space, j * 64, i * 64);
+                     else if (data->mapp[i][j] == 'C')
+                        mlx_put_image_to_window(data->mlx, data->win, data->collectable, j * 64, i * 64);
+                    else if (data->mapp[i][j] == 'E')
+                         mlx_put_image_to_window(data->mlx, data->win, data->exit, j * 64, i * 64);
+                    else if (data->mapp[i][j] == 'T')
+                         mlx_put_image_to_window(data->mlx, data->win, data->enemy, j * 64, i * 64);
+                 j++;
+         }
         i++;
     }
  }
@@ -525,8 +376,6 @@ void find_player_coordinates(t_data *data)
         i++;
     }
 }
-
-//check win condition 
 
 int win_case(t_data *data)
 {
@@ -577,26 +426,16 @@ void w_is_pressed(t_data *data)
             printf("Good job! You helped Techie, he will never forget it ◡̈\n");
             exit(0);
         }
-        else
-        {
-            // data->mapp[data->player_x - 1][data->player_y] = 'P';
-            // data->mapp[data->player_x][data->player_y] = '0';
-            // data->moves++;
-            // printf("moves \n%d\n", data->moves);
             return ;
-        }
     }
-    
     if (data->mapp[data->player_x - 1][data->player_y] != '1') // Empty cell
     {
         data->mapp[data->player_x - 1][data->player_y] = 'P';
         data->mapp[data->player_x][data->player_y] = '0';
         data->moves++;
-        //function to put moves on screen 
         write_moves(data);
-       // printf("moves \n%d\n", data->moves);
     }
-    data->animation_frame = (data->animation_frame == 1) ? 2 : 1;
+    data->animation_frame = (data->animation_frame == 1) ? 2 : 1; //another f
     data->current_direction = BACK;
 }
 
@@ -614,27 +453,16 @@ void s_is_pressed(t_data *data)
             printf("Cheers! You did it ◡̈ \nTechie is grateful for your help and wishes you a bug-free coding experience 💻\n");
             exit(0);
         }
-        else
-        {
-        //     data->mapp[data->player_x + 1][data->player_y] = 'P';
-        //     data->mapp[data->player_x][data->player_y] = '0';
-        //     data->moves++;
-        //     printf("moves \n%d\n", data->moves);
-        return ;
-        }
+            return ;
     }
-     
   if (data->mapp[data->player_x + 1][data->player_y] != '1') // Empty cell
     {
         data->mapp[data->player_x + 1][data->player_y] = 'P';
         data->mapp[data->player_x][data->player_y] = '0';
         data->moves++;
          write_moves(data);
-     //   printf("moves \n%d\n", data->moves);
     }
-//  data->animation_frame = 1;
-data->animation_frame = (data->animation_frame == 1) ? 2 : 1;
-
+data->animation_frame = (data->animation_frame == 1) ? 2 : 1; //into another f
   data->current_direction = FRONT;
 }
 
@@ -652,21 +480,16 @@ void a_is_pressed(t_data *data)
             printf("Cheers! You did it ◡̈\nP.S. Wish you a bug-free coding experience 💻\n");
             exit(0);
         }
-        else
-        {
            return ;
-        }
     }
-     
     if (data->mapp[data->player_x][data->player_y - 1] != '1') // Empty cell
     {
         data->mapp[data->player_x][data->player_y - 1] = 'P';
         data->mapp[data->player_x][data->player_y] = '0';
         data->moves++;
          write_moves(data);
-       // printf("moves \n%d\n", data->moves);
     }
-     data->animation_frame = (data->animation_frame == 1) ? 2 : 1;
+     data->animation_frame = (data->animation_frame == 1) ? 2 : 1; //inot another f
      data->current_direction = LEFT;
 }
 
@@ -685,21 +508,16 @@ void d_is_pressed(t_data *data)
             printf("Cheers! You helped Techie get to the computer and start working ◡̈\n P. S. Wish you a bug-free coding experience 💻\n");
             exit(0);
         }
-        else
-        {
            return ;
-        }
     }
     if (data->mapp[data->player_x][data->player_y + 1] != '1') // Empty cell
     {
         data->mapp[data->player_x][data->player_y + 1] = 'P';
         data->mapp[data->player_x][data->player_y] = '0';
         data->moves++;
-        //int		mlx_string_put(void *mlx_ptr, void *win_ptr, int x, int y, int color, char *string);
      write_moves(data);
-      // printf("moves \n%d\n", data->moves);
     }
-    data->animation_frame = (data->animation_frame == 1) ? 2 : 1;
+    data->animation_frame = (data->animation_frame == 1) ? 2 : 1; //inot another function from all w a s d
 	data->current_direction = RIGHT;
 }
 
@@ -707,12 +525,12 @@ void d_is_pressed(t_data *data)
 int handle_key(int keycode, t_data *data)
 {
     find_player_coordinates(data);
-
+    //if into another function
     if (keycode == 53)
     {
         printf("Techie is tired and decided to go on vacation, work will wait ✈️\n");
         exit(0);  
-    } //ESC
+    } //into_another close function  
     else if (keycode == 13 && data->mapp[data->player_x - 1][data->player_y] != '1') //not wall w is pressed
     {	
     	data->current_direction = FRONT;	    
@@ -733,11 +551,11 @@ int handle_key(int keycode, t_data *data)
 	    data->current_direction = RIGHT;
     	    d_is_pressed(data);
     }
-
- mlx_clear_window(data->mlx, data->win);
-ft_image(data);
-	 return (0); //because of mlx, if worked correctly
+     mlx_clear_window(data->mlx, data->win);
+    ft_image(data);
+	 return (0); 
 }
+
 int close_with_x(t_data *data)
 {
     printf("Techie decided to go on a vacation. Work will wait ✈️\n");
@@ -745,30 +563,20 @@ int close_with_x(t_data *data)
     exit(0);
 }
 
-/*int animate(t_data *data)
-{
-	data->animation_frame = (data->animation_frame == 1) ? 2 : 1;
-	ft_image(data);
-        mlx_clear_window(data->mlx, data->win);
 
-	return 0;
-}
-*/
 void graphics(t_data *data)
 {
     data->win_h = (data->height) * 64;
     data->win_w = (data->width) * 64;
     data->mlx = mlx_init();
     data->win = mlx_new_window(data->mlx, data->win_w, data->win_h, "so_long");
-  //  printf("win_h %d win_w %d\n", data->win_w, data->win_h);
     load_image(data); 
     data->animation_frame = 1;
     data->current_direction = FRONT;
     ft_image(data);
     mlx_hook(data->win, 2, 0,  handle_key, data);
      mlx_hook(data->win, 17, 0, close_with_x, data);
-//     	mlx_loop_hook(data->mlx, animate, data);
-        mlx_loop_hook(data->mlx, write_moves, data);
+    mlx_loop_hook(data->mlx, write_moves, data);
 
     mlx_loop(data->mlx);
 }
@@ -798,7 +606,6 @@ int main(int argc, char **argv)
     }
     map_validation(data);
     graphics(data);
-    //printf("width %d height %d\n", data->width, data->height);
     free_data(data);
     return 0;
 }

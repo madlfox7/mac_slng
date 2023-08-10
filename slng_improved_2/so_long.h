@@ -53,7 +53,7 @@ typedef struct s_data
 
 //main.c
 
-void print_matrix(const t_data *data); //delete later
+//void print_matrix(const t_data *data); //delete later
 void free_map(t_data *data);
 void free_data(t_data *data);
 void print_processed_map(char *processed_map);
@@ -75,16 +75,14 @@ void check_filename(char *filename);
 
 
 //get_next_line_utils.c 
-
-char	*ft_strjoin(char *s1, char *s2);
-char	*ft_strchr(char *s, int c);
+char	*ft_itoa(int n);
+char	*handle_zero(int n);
+int	count_digits(int n);
+char	*ft_strdup_itoa(const char *str);
 size_t	ft_strlen(char	*s);
 
 //get_next_line.c
 
-char	*ft_parc_buf(char *buf);
-char	*ft_check(char *buf, char *result, int i);
-char	*ft_parc1(char *buf);
 char *get_next_line(int fd);
 
 //join_lines.c 

@@ -45,25 +45,15 @@ void	nl_in_between(char *str)
 	}
 }
 
-int	ft_strlen_excl(const char *str)
-{
-	int len;
-
-	len	= 0;
-	while (str[len] != '\0')
-        len++;
-    return len;
-} //change to ft_strlen
-
 void	get_width(char **res, int *width)
 {
 	int etalon;
 	int current_width;
 
-	etalon	= ft_strlen_excl(res[0]);
+	etalon	= ft_strlen(res[0]);
     for (int i = 0; res[i] != NULL; i++)
     {
-		current_width = ft_strlen_excl(res[i]);
+		current_width = ft_strlen(res[i]);
         if (res[i][current_width] != '\0' && res[i][current_width] != '\n')
         {
             printf("Error: Line %d is not properly terminated with '\\n' or '\\0'\n", i);
@@ -101,7 +91,7 @@ void allocate_map(t_data *data)
             exit(EXIT_FAILURE);
         }
     }
-    //copy
+    //copy//in other function
      data->mapp = (char**)malloc(data->height * sizeof(char*));
     if (data->mapp == NULL)
     {
@@ -146,7 +136,7 @@ void check_lines_len(char **res)
     {
         i++;
     }
-} //change to ft_strlen
+}
 
 void	trim(t_data *data, char *str, int *height, int *width)
 {
