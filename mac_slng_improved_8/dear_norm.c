@@ -1,0 +1,74 @@
+#include "so_long.h"
+
+void	oh_dear_norm(t_data *data)
+{
+	int	y;
+	int	x;
+
+	y = 0;
+	while (y < data->height)
+	{
+		x = 0;
+		while (x < data->width)
+		{
+			if (data->mp[y][x] == 'P')
+			{
+				error_msg(data);
+				data->player_x_v = x;
+				data->pl_y_v = y;
+				data->player_found = 1;
+			}
+			else if (data->mp[y][x] == 'E')
+			{
+				error_msg(data);
+				data->exit_found = 1;
+			}
+			x++;
+		}
+		y++;
+	}
+}
+
+void	initialize_map_validation_data(MapValidationData *map_data)
+{
+	map_data->player_x = -1;
+	map_data->pl_y = -1;
+	map_data->player_found = 0;
+	map_data->exit_found = 0;
+	map_data->collect_count = 0;
+	map_data->exit_is_accessible = 0;
+}
+
+void	map_error_msg(MapValidationData map_data, int flag)
+{
+	if (map_data.player_found && flag == 1)
+	{
+		printf("Error: Multiple players (P) found!\n");
+		exit (1);
+	}
+	if (map_data.exit_found && flag == 2)
+	{
+		printf("Error: Multiple exits (E) found!\n");
+		exit (1);
+	}
+	if (flag == 3)
+	{
+		if (!map_data.player_found)
+		{
+			printf("Error: Player (P) not found!\n");
+			exit (1);
+		}
+		if (!map_data.exit_found)
+		{
+			printf("Error: Exit (E) not found!\n");
+			exit (1);
+		}
+	}
+}
+
+int	valid_char(char c)
+{
+	if (c == '0' || c == '1' || c == 'E' || c == 'P' || c == 'C' || c == 'T')
+		return (1);
+	return (0);
+}
